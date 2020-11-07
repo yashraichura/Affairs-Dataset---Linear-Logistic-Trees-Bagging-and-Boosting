@@ -1,0 +1,768 @@
+---
+title: "IMT 573 Final Exam"
+author: "Yash Manish Raichura"
+date: "Due: December 10, 2019"
+output: pdf_document
+header-includes:
+- \newcommand{\benum}{\begin{enumerate}}
+- \newcommand{\eenum}{\end{enumerate}}
+- \newcommand{\bitem}{\begin{itemize}}
+- \newcommand{\eitem}{\end{itemize}}
+---
+
+\noindent {\bf Instructions}
+
+This is a take-home final examination. You may use your computer, books/articles, notes, course materials, etc., but all work must be your own! References must be appropriately cited. Please justify your answers and show all work; a complete argument must be presented to obtain full credit. Before beginning this exam, please ensure you have access to R and RStudio; this can be on your own personal computer or on the IMT 573 R Studio Server. 
+
+1. Download the `final_exam.rmd` file from Canvas or save a copy to your local directory on RStudio Server. Open `final_exam.rmd` in RStudio and supply your solutions to the exam by editing `final_exam.rmd`. 
+
+2. Replace the "Insert Your Name Here" text in the `author:` field with your own full name.
+
+3. Be sure to include well-documented (e.g. commented) code chucks, figures, and clearly written text chunk explanations as necessary. Any figures should be clearly labeled and appropriately referenced within the text. Be sure that each visualization adds value to your written explanation; avoid redundancy -- you do not need four different visualizations of the same pattern.
+
+4.  \textbf{Collaboration is not allowed on this exam.} You may only speak with the Instructor (Lavi Aulck) and the TA (Varun Panicker) about this material. 
+
+5. All materials and resources that you use (with the exception of lecture slides) must be appropriately referenced within your assignment.  
+
+6. Remember partial credit will be awarded for each question for which a serious attempt at finding an answer has been shown. Students are \emph{strongly} encouraged to attempt each question and to document their reasoning process even if they cannot find the correct answer. If you would like to include R code to show this process, but it does not run without errors, you can do so with the `eval=FALSE` option. (Note: I am also using the `include=FALSE` option here to not include this code in the PDF, but you need to remove this or change it to `TRUE` if you want to include the code chunk.)
+
+```{r example chunk with a bug, eval=FALSE, include=FALSE}
+a + b # these object dont' exist 
+# if you run this on its own it with give an error
+```
+
+7. When you have completed the assignment and have **checked** that your code both runs in the Console and knits correctly when you click `Knit PDF`, rename the knitted PDF file to `YourLastName_YourFirstName.pdf`, and submit BOTH your RMarkdown and PDF files on Canvas.
+
+\noindent {\bf Statement of Compliance} 
+
+You \textbf{must} include the a ``signed'' Statement of Compliance in your submission. The Compliance Statement is found on the next page of this exam. You must include this text, word-for-word, in your final exam submission. Adding your name indicates you have read the statement and agree to its terms. Failure to do so will result in your exam \textbf{not} being accepted.
+
+\newpage
+
+\begin{center}
+{\bf Statement of Compliance}
+\end{center}
+
+\noindent I affirm that I have had no conversation regarding this exam with any persons other than the instructor (Lavi Aulck) and TA (Varun Panicker). Further, I certify that the attached work represents my own thinking. Any information, concepts, or words that originate from other sources are cited in accordance with University of Washington guidelines as published in the Academic Code (available on the course website). I am aware of the serious consequences that result from improper discussions with others, sharing this exam, or from the improper citation of work that is not my own. The above also pertains to this exam after my enrollment in the course is completed.
+\vspace{.1in}
+
+\noindent (Yash Manish Raichura) 
+
+\noindent (12-09-2019)
+
+\newpage
+
+\noindent {\bf Setup}
+
+In this exam you will need, at minimum, the following R packages.
+
+```{r Setup, message=FALSE}
+
+#install.packages('tidyverse')
+#install.packages('mice')
+#install.packages('AER')
+#install.packages('bestglm')
+#install.packages('ggpubr')
+#install.packages('leaps')
+#install.packages('ggcorrplot')
+#install.packages('manip')
+#install.packages('MASS')
+#install.packages('caret')
+#install.packages('caTools')
+#install.packages('gbm')
+#install.packages('randomForest')
+#install.packages('ISLR')
+#install.packages('AER')
+#install.packages('rpart')
+library(rpart)
+library(AER)
+library(ISLR)
+library(caret)
+library(randomForest)
+library(gbm)
+library(MASS)
+library(caTools)
+library(MASS, quietly = TRUE)
+library(MASS)
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+library(bestglm)
+library(leaps)
+library(ggcorrplot)
+library(tidyverse)
+```
+
+\newpage
+
+\noindent {\bf Problem 1} \hfill (15 pts)
+\vspace{.25in}
+
+\noindent In this problem we will use the infidelity data, known as the Fair's Affairs dataset. The `Affairs` dataset is available as part of the \texttt{AER} package in \textbf{R}. This data comes from a survey conducted by \emph{Psychology Today} in 1969, see Greene (2003) and Fair (1978) for more information. 
+
+```{r}
+
+affairs <- data(Affairs)
+affairs <- Affairs
+#View(affairs)
+```
+\noindent The dataset contains various self-reported characteristics of 601 participants, including how often the respondent engaged in extramarital sexual intercourse during the past year, as well as their gender, age, year married, whether they had children, their religiousness (on a 5-point scale, from 1=anti to 5=very), education, occupation (Hillingshead 7-point classification with reverse numbering), and a numeric self-rating of their marriage (from 1=very unhappy to 5=very happy).
+
+```{r}
+
+?Affairs
+head(affairs)
+summary(affairs)
+str(affairs)
+
+```
+
+\bitem
+\item[(a)] Describe the participants. Use descriptive, summarization, and exploratory techniques to describe the participants in the study. For example, what proportion of respondents are female? What is the average age of respondents? In your response comment on any ethical and privacy concerns you have with this dataset. 
+
+The dataset is a survey conducted by Psychology Today in 1969. The results of the survey cannot be corroborated and we do not know how truthful the participants have been in answering the questions. 
+
+```{r}
+#Checking for NA values in the dataset
+sum(is.na(affairs))
+
+a <- ggplot(data = affairs) + geom_bar(mapping = aes(x = gender))
+b <- ggplot(data = affairs, mapping =aes(x = affairs)) + geom_bar()
+c <- ggplot(data = affairs, mapping =aes(x = age)) + geom_bar()
+d <- ggplot(data = affairs, mapping =aes(x = yearsmarried)) + geom_bar()
+e <- ggplot(data = affairs, mapping =aes(x = religiousness)) + geom_bar()
+f <- ggplot(data = affairs, mapping =aes(x = education)) + geom_bar()
+g <- ggplot(data = affairs, mapping =aes(x = occupation)) + geom_bar()
+h <- ggplot(data = affairs, mapping =aes(x = rating)) + geom_bar()
+figure <- ggarrange(a,b,c,d,e,f,g,h)
+figure
+
+#Number of affairs based on the gender
+affairs %>% group_by(affairs,gender) %>% summarize(count=n())
+
+#Proportion of males and females in the participant pool
+summary(affairs$gender)
+
+#Average age of the pariticipant pool
+mean(affairs$age)
+
+#Average age and number of affairs per gender
+
+#1. Average age and number of affairs of males
+men_age<- filter(affairs, gender == 'male') 
+mean(men_age$age)  
+mean(men_age$affairs)
+
+# 2. Average age and number of affairs of females
+female_age<- filter(affairs, gender == 'female') 
+mean(female_age$age)
+mean(female_age$affairs)
+
+#Number of affiars based on whether the participants had children or not
+ggplot(affairs) + geom_histogram(aes(x=affairs)) + facet_wrap(~ children)
+```
+ 
+\item[(b)] Suppose we want to explore the characteristics of participants who engage in extramarital sexual intercourse (i.e. affairs). Instead of modeling the number of affairs, consider the binary outcome  - had an affair versus didn't have an affair. Create a new variable to capture this response variable of interest. What might the advantages and disadvantages of this approach to modeling the data be in this context?
+
+Binary column 'affair' created below based on number of affairs. The column value is 1 if the participant has had an affair, else it is set to 0.
+If only the binary variable is taken to model the data, the model prediction will only be limited to understanding the factors related to whether the participant will engage in an affair or not. No inferences would be made about the number of affairs.
+
+```{r}
+
+colnames(affairs)[1] <- "number_of_affairs"
+affairs$affair <- NA
+affairs$affair[affairs$number_of_affairs > 0] <- 1
+affairs$affair[affairs$number_of_affairs == 0] <- 0
+sum(is.na(affairs$affair))
+```
+
+\item[(c)] Use an appropriate regression model to explore the relationship between having an affair and other personal characteristics. Comment on which covariates seem to be predictive of having an affair and which do not.
+
+Since we have a binary variable created of whether the participant has had an affair or not, we can use logistic regression.
+```{r}
+#Fully fitted model
+
+fit1 <- glm(affair ~ gender + age + yearsmarried + children + religiousness + education + occupation +rating,
+                data=affairs,family=binomial())
+
+summary(fit1)
+
+```
+As we see above, p-value is quite large fro gender, age, children, education and occupation as compared to critical value (0.05 in this case). Hence, these variables are not as much statistically significant. However, it seems that rating, number of years married and religiousness have an impact on a person having an affair. Looking at Beta values for these 3 variables, we can say that as the number of years increases of the participant in the marriage, the liklier is the probability of having an affair. The same goes for rating. The higher the rating (i.e. happier participant in the marriage), the chances of having an affair decreases since the beta values are positive. Surprisingly, the same is valid for having children too. People having children have higher probabilities of being involved in an affair.
+
+\item[(d)] Use an all subsets model selection procedure to obtain a "best" fit model. Note that an all subsets model selection is not the same as forward/backward selection. Is the model different from the full model you fit in part (c)? Which variables are included in the "best" fit model? You might find the \texttt{bestglm()} function available in the \texttt{bestglm} package helpful.
+
+Xy dataframe was created consisting of the explanatory variables and the response variable at the end for best subset model selection using bestglm() function. Here we see that age and gender (male) have also been included in the model. The coefficient for age is negative which shows that people lower than the mean age have higher probability of being involved in an affair. Whereas, men are more likely to have an affair with Beta1 being approximately 0.06.
+If a different information criteria, BIC is used, the model explanatory variables are statistically the same as generated by the glm function.
+
+```{r}
+
+Xy <- affairs[,2:10]
+
+fit2 <- bestglm(Xy, IC = 'AIC')
+fit2
+bestglm(Xy, IC = 'BIC')
+
+```
+
+\item[(e)] Interpret the model parameters using the model from part (d). 
+
+The logistic regression coefficients give a change in the log odds of the outcome for a unit increase in the predictor variable. 
+The intercept value is 0.82
+As shown in the output of bestglm() function, for every unit change in age, log odds of having an affair decreases by 0.07. 
+For every unit increase in yearsmarried, the log odds of having an affair increases by 0.018.
+For every unit increase in religiousness, the log odds of having an affair decreases by 0.05.
+For every unit increase in rating, the log odds of having an affair decreases by 0.08.
+The variable gendermale is 0 when the participant is female and 1 when the participant is male. Thus, if we are predicting females involved in a n affair, we get:
+affairs = 0.82158177  + 0.06360652  x 0 
+For gender = male, the equation changes to 
+affairs = 0.82158177  + 0.06360652  x 1
+
+The p-value of all these parameters is less than 0.05 which make the results statistically significant. 
+
+
+
+\item[(f)] Create an artificial test dataset where marital rating varies from 1 to 5 and all other variables are set to their means. Use this test dataset and the \texttt{predict} function to obtain predicted probabilities of having an affair for case in the test data. Interpret your results and use a visualization to support your interpretation.
+
+Since gender and children are factors, we are not considering a part of the model to be validated on the test dataset. If we convert these factor variables to 1's and 0's i.e 1 for males and 0 for females, and 1 for yes and 0 for no in children, the mean of the gender variable comes up to be 1.47 which is a incorrect, making the model output biased. Hence, these 2 variables have not been considered. Also, these variables were not statistically significant and in turn will not affect the model.
+
+As we can see, by taking means of all the other predictor variables, the probability of having an affair decreases with how happy the participant is with his/her marriage. Hence, the model is prediciting correctly.
+
+
+```{r}
+
+
+
+#affairs$gender <- as.character(affairs$gender)
+#affairs$gender[affairs$gender == 'male'] <- '1'
+#affairs$gender[affairs$gender == 'female'] <- '0'
+#affairs$gender <- as.numeric(affairs$gender)
+#affairs$gender <- as.factor(affairs$gender)
+#mean(affairs$gender)
+#str(affairs)
+
+fit3 <- glm(affair ~ age + yearsmarried + religiousness + education + occupation +rating,
+                data=affairs,family=binomial())
+
+summary(fit3)
+
+
+test <- data.frame(rating = c(1, 2, 3, 4, 5), age = mean(affairs$age),yearsmarried =
+                     mean(affairs$yearsmarried),
+religiousness = mean(affairs$religiousness), education = mean(affairs$education), 
+education = mean(affairs$education), occupation = mean(affairs$occupation))
+
+View(test)
+head(test)
+
+#Probability outcomes of having an affair
+test$prob <- predict(fit3, test, type="response")
+test$prob
+
+#Ranking vs Probability of having an affair
+ggplot(data = test, mapping = aes(x=rating, y = prob)) + geom_line(color='blue')
+
+```
+
+\item[(g)] Reflect on your analysis in this problem. After completing all the parts of this analysis what remaining and additional ethical and privacy concerns do you have?
+
+The entire survey depends on individual perception. For some, the rating 4 might mean they are very happy with the marriage and for some that might not be the case. Also, inclusion of religion into the dataset might raise some ethical concerns. Ideally, it should have no impact on whether an individual is involved in an affair or not.
+
+\eitem
+
+\newpage
+
+\noindent {\bf Problem 2}  \hfill (10 pts)
+\vspace{.25in}
+
+\noindent In this problem we will revisit the \texttt{state} dataset. This data, available as part of the base \textbf{R} package, contains various data related to the 50 states of the United States of America.
+
+\noindent Suppose you want to explore the relationship between a state's \texttt{Murder} rate and other characteristics of the state, for example population, illiteracy rate, and more. Follow the questions below to perform this analysis.
+
+\bitem
+\item[(a)] Examine the bivariate relationships present in the data. Briefly discuss notable results. You might find the \texttt{scatterplotMatrix()} function available in the \texttt{car} package helpful.
+
+By calculating correlation coefficient, we see that linear relationships cannot be assumed for all covariate
+relationships. For example, in the plot of Income v/s Murder, correlation is equal to -0.23 which suggests
+that the bivariate relationship is not completely linear. Although, on the other end, the correlation between
+Illiteracy and Murder is 0.70 which suggests that the two variables have a strong positive linear relationship
+i.e. more the illiteracy in the state, more is the count for murder.
+Also, in the correlation matrix, we can plot the correlation between all the numeric variables which give us
+a glimpse of the relationship the bivariate variables share.
+
+
+```{r}
+
+#data(state)
+#View(state.x77)
+states <- cbind(state.x77, state.area, state.name)
+#View(states)
+states <- tbl_df(states)
+
+#scatterplotMatrix
+scatterplotMatrix(state.x77)
+state.x77 <- as.data.frame(state.x77)
+
+#Changing the column names to remove spaces
+colnames(state.x77)[colnames(state.x77)=="Life Exp"] <- "Life_Exp"
+colnames(state.x77)[colnames(state.x77)=="HS Grad"] <- "HS_Grad"
+
+#Plotting bivariate relationships
+a1 <- ggplot(state.x77, aes(x=Illiteracy, y=Murder)) + geom_point()+geom_smooth() 
+b1 <- ggplot(state.x77, aes(x=Life_Exp , y=Murder)) + geom_point() +geom_smooth()
+c1 <- ggplot(state.x77, aes(x = Population, y = Murder)) + geom_point() + geom_smooth()
+d1 <- ggplot(state.x77, aes(x = Area, y = Murder)) + geom_point() + geom_smooth()
+e1 <- ggplot(state.x77, aes(x = Frost, y = Murder)) + geom_point() + geom_smooth()
+f1 <- ggplot(state.x77, aes(x = Income, y = Murder)) + geom_point() + geom_smooth()
+g1 <- ggplot(state.x77, aes(x = HS_Grad, y = Murder)) + geom_point() + geom_smooth()
+figure <- ggarrange(a1,b1,c1,d1,e1,f1,g1, ncol=2, nrow=4)
+figure
+
+#ggpairs(state.x77)
+
+s <- state.x77 %>% select_if(is.numeric)
+corr <- cor(s)
+corr
+ggcorrplot(corr, lab = TRUE, type = "lower", method="circle")
+
+
+```
+
+\item[(b)] Fit a multiple linear regression model. How much variance in the murder rate across states do the predictor variables explain?
+
+In the below fitted linear regression model, we see that the variables - Population, Life_Exp and Income are statistically significant and impact murder across the states.
+The adjusted R square value is 0.7763.
+With every unit increase in population, murder increases by 0.000188.
+For every unit increase in income, there is a decrease in the murder rate by 0.000159.
+For every unit increase in Life_Exp, there is a decrease in the murder rate by 1.65486983.
+
+```{r}
+options(scipen=4)
+
+linear_model <- lm(Murder ~ ., data = state.x77)
+summary(linear_model)
+
+```
+\item[(c)] Evaluate the statistical assumptions in your regression analysis from part (b) by performing a basic analysis of model residuals and any unusual observations. Discuss any concerns you have about your model.
+
+The multiple regression model is not fitted that well since we can see that the mean distance of the residuals is present and it needs to be minimum. The normal Q-Q plot shows that the data is normally distributed to an extent.
+The statistical assumptions made are - 
+1. Multi colinearity is followed by all the variables.
+2. We also assume that the variables follow a normal distribution.
+3. The response variable is a dependent variable and all the other predictor variables are independent variables.
+
+```{r}
+
+residuals <- resid(linear_model)
+residuals
+
+ggplot(data = data.frame(x=state.x77$Murder, y=residuals)) + geom_point(aes(x=x,y=y, color = 'red')) + geom_abline(slope=0, intercept=0) + stat_smooth(aes(x=x,y=y))
+
+plot(residuals)
+plot(linear_model)
+qqnorm(residuals)
+
+```
+
+\item[(d)] Use a stepwise model selection procedure of your choice to obtain a "best" fit model. Is the model different from the full model you fit in part (b)? If yes, how so?
+
+Here, the stepAIC() function was used for model selection. Both the combinations of forward and backward selection models was used and as we can see, that the number of explanatory variables affecting the response variable i.e. Murder have redcued, yet R squared value has increased. The variables Populaton, Illiteracy, Life_Exp, Frost and Area have been incuded this time, out of which Illilteracy is not of great statistical significance, when compared to the critical value which is taken is 0.05 in this case. Also the AIC of this model is lowered and hence we can conclude that it is a better fitting model. The AIC of the linear model was 206 whereas in our selection model, AIC is 203 and hence we can say that the stepwise selection model performs better.
+```{r}
+
+selection_model <- stepAIC(linear_model, direction = 'both', trace=FALSE)
+summary(selection_model)
+
+AIC(linear_model)
+AIC(selection_model)
+```
+
+
+
+\item[(e)] Assess the model (from part (d)) generalizability. Perform a 10-fold cross validation to estimate model performance. Report the results.
+
+Cross-validation is basically a form of resampling the data again because we are fitting the same statistical method multiple times on different subsets of the data. In K-fold cross validation, we test model performance against one data point at each iteration. This may result in higher variation in predicted errors. A model overfits if it is given a small dataset. And also to avoid underfitting, we can implement k fold cross validation.
+
+```{r}
+
+str(state.x77)
+ind = createDataPartition(state.x77$Murder, p = 9/10, list = FALSE)
+train_state <- state.x77[ind,]
+test_state <- state.x77[-ind,]
+
+control_parameters <- trainControl(method = 'cv', number = 10, savePredictions = TRUE)
+cv_model <- train(Murder ~ Population + Illiteracy + Life_Exp + Frost + Area, data = state.x77, 
+               trControl = control_parameters, method = 'lm')
+print(cv_model)
+cv_model$finalModel
+```
+
+\item[EXTRA CREDIT:] Fit a regression tree via CART using the same covariates in your "best" fit model from part (d). Note that CART was not covered in class and you will need to use external resources to learn about/understand it. Use cross validation to select the "best" tree. Compare the models from part (d) and (f) based on their performance. Which do you prefer? Be sure to justify your preference.
+
+After cross  validation it was found that the tree  was  same as the original tree. Hence the regression tree model works well with the data.
+
+```{r}
+
+
+fit2 <- rpart(Murder ~ Life_Exp + Illiteracy + Frost + Population + Area, data = state.x77,
+              method = 'anova')
+print(fit2)
+plotcp(fit2)
+
+plot(fit2, uniform = TRUE)
+text(fit2, use.n = TRUE, all = TRUE, cex=.8)
+
+#Pruning the tree
+
+plot(prune(fit2, cp = 0.01160389), uniform = TRUE)
+text(prune(fit2, cp = 0.01160389), use.n = TRUE, all=TRUE, cex=.8)
+
+```
+
+\eitem
+  
+\newpage
+
+\noindent {\bf Problem 3} \hfill (5 pts)
+\vspace{.25in}
+
+\noindent The Wisconsin Breast Cancer dataset is available as a comma-delimited text file on the UCI Machine Learning Repository \url{http://archive.ics.uci.edu/ml}. Our goal in this problem will be to predict whether observations (i.e. tumors) are malignant or benign. 
+
+\bitem
+\item[(a)] Obtain the data, and load it into \textbf{R} by pulling it directly from the web. (Do \textbf{not} download it and import it from a CSV file.) Give a brief description of the data.
+
+Variable informatation - 
+1. Sample code number: id number
+2. Clump Thickness: 1 - 10
+3. Uniformity of Cell Size: 1 - 10
+4. Uniformity of Cell Shape: 1 - 10
+5. Marginal Adhesion: 1 - 10
+6. Single Epithelial Cell Size: 1 - 10
+7. Bare Nuclei: 1 - 10
+8. Bland Chromatin: 1 - 10
+9. Normal Nucleoli: 1 - 10
+10. Mitoses: 1 - 10
+11. Class: (2 for benign, 4 for malignant)
+
+```{r}
+
+#Loading data from the url provided
+link <- "http://mlr.cs.umass.edu/ml/machine-learning-databases/breast-cancer-wisconsin/breast-cancer-wisconsin.data"
+cancer_data <- read.table(link, header = FALSE, sep=",")
+
+```
+
+\item[(b)] Tidy the data, ensuring that each variable is properly named and cast as the correct data type. Is there any missing data? Discuss what you see.
+
+All the variables in the dataset have been correctly named. There are 16 N/A values in the Bare Nuclei column. Since there are 699 records and Bare Nuclei is a factor variable, replacing these N/A values with either the mean or imputing them using mice seems inappropriate since they are cell characeteristics. Hence, 16 being a small proportion of 699, we omit those observations.
+
+```{r}
+
+#Adding column names to the data
+names(cancer_data)<-c("Sample_code_number","Clump_Thickness","Uniformity_of_Cell_Size",
+                      "Uniformity_of_Cell_Shape","Marginal_Adhesion",
+                      "Single_Epithelial_Cell_Size","Bare_Nuclei","Bland_Chromatin",
+                      "Normal_Nucleoli","Mitoses","Class")
+
+#View(cancer_data)
+
+#Inspecting the data
+summary(cancer_data)
+str(cancer_data)
+nrow(cancer_data)
+
+#Checking for NA values
+sum(is.na(cancer_data))
+
+#omitting NA values
+cancer_data$Bare_Nuclei <- na.omit(cancer_data$Bare_Nuclei)
+
+#Adding another variable with values 0 and 1 corresponding to benign and malignant cells respectively. 
+#This computation is based on the class column from the dataset.
+cancer_data$Class1 <- ifelse(cancer_data$Class == '2', 0,  ifelse(cancer_data$Class == '4', 1, NA))
+ 
+```
+
+\item[(c)] Split the data into a training and validation set such that a random 70\% of the observations are in the training set.  
+
+```{r}
+
+#Splitting the data into training and testing datasets in the ratio 70:30
+set.seed(123)
+sample <- sample.int(n = nrow(cancer_data), size = floor(.70*nrow(cancer_data)))
+train_cancer_data <- cancer_data[sample, ]
+test_cancer_data <- cancer_data[-sample, ]
+str(cancer_data)
+
+
+```
+
+\item[(d)] Fit a regression model to predict whether tissue samples are malignant or benign. Classify cases in the validation set. Compute and discuss the resulting confusion matrix. Be sure to address which of the errors that are identified you consider most problematic in this context. 
+
+
+
+
+
+```{r}
+
+#Logistic Regression
+logistic_model <- glm(Class1 ~ Clump_Thickness+ Uniformity_of_Cell_Size
+                      + Uniformity_of_Cell_Shape + Marginal_Adhesion 
+                      + Single_Epithelial_Cell_Size+ Bare_Nuclei 
+                      + Bland_Chromatin  + Normal_Nucleoli + Mitoses,
+                      family = "binomial", data = train_cancer_data)
+summary(logistic_model)
+
+#Predictions
+logistic_model_result <- predict(logistic_model, newdata = test_cancer_data, type='response')
+nrow(test_cancer_data)
+View(logistic_model_result)
+
+#Confusion Matrix with threshold 0.5
+table(test_cancer_data$Class1, logistic_model_result > 0.5)
+
+#Accuracy
+accuracy <- (144+55)/(144+6+5+55)
+accuracy
+
+#Precision
+precision <- 58/(7+58)
+precision
+
+#Recall
+recall <- 58/(58+2)
+recall
+
+#Sensitivity 
+sensitivity  <- 58/(58+2)
+sensitivity 
+
+#Specificity
+specificity <- 143/(143+7)
+specificity
+
+#GGPLOT STATING ALL THE METRICS
+```
+
+\eitem
+
+\newpage
+
+\noindent {\bf Problem 4} \hfill (10 pts)
+\vspace{.25in}
+
+\noindent Please answer the questions below by writing a short response. 
+
+\bitem
+\item[(a)] Describe three real-life applications in which \emph{classification} might be useful. Describe the response, as well as the predictors. Is the goal in each application inference or predictions? Explain your answer. 
+
+The 3 real life applications where classification might be useful are as follows - 
+
+1. Whether the product will fail or succeed - The response variable would be a factor, with 2 levels - 'success' and 'failure'. The predictor variables that can be considered are as follows - money spent on marketing, category of the product, brand value, average duration spent on R&D.
+
+2. To know whether the cancer is benign or malignant - The response variable would be a factor, with 2 levels - 'malignant' and 'beinign'. The predictor variables in this case could be the characteristics of body cells like uniformity of cell size, cell shape, clump thickness.
+
+3. Classification can be used to decide whether a student would be admitted into a particular university or not. The response variable would be a factor, simply a 'yes' or 'no'. The response variables can be, test scores of a student, average income of family, gpa of the student, how good the statement of purpose is, letter of recommendtions, number of extra-curricular activities the student was involved in.
+
+
+\item[(b)] Describe three real-life applications in which \emph{regression} might be useful. Describe the response, as well as the predictors. Is the goal in each application inference or predictions? Explain your
+answer.
+
+The 3 real-life examples in which regression might be useful are as follows - 
+
+1. Regression can be used to predict the apartment value. The response variable would be price of the apartment and the response variable can be as follows - average income of family in the neighborhood, crime rate, number of graduate, undergraduate, high school students.
+
+2. Linear Regression can be used to predict the crime rate in a region. The response variable would be crime rate and the predictor variable would be - life expectancy, percentage of diseased patients, number of cases filed, average income, illiteracy rate.
+
+3. Sports analyst use linear regression to predict the number of goals a player would score in the coming matches based on previous performances. The predictors to be considered may look like the following - number of matches played in the last month, opponents played against, number of goals scored, number of chances created, number of attempts, goals per match ratio of the year.
+
+\item[(c)] What are the advantages and disadvantages of a very flexible (versus a less flexible) approach for regression or classification? Under what circumstances might a more flexible approach be preferred to a less flexible approach? When might a less flexible approach be preferred?
+
+A flexible model when receives large samples of data performs better than a less flexible model. However, with a small dataset, a flexible model would overfit the data and also increase the variance. Hence, we can also say that a flexible model would perform better with higher degress of freedom. 
+
+The advantages of a  flexible approach are that it may give a better fit for non-linear models and it decreases the bias. A more flexible approach would be preferred in prediction and not the interpretability of the results predicting the crime rates in a region. A less flexible approach would be preferred in inference and the interpretability of the results, for example, whether the person is a republican or a democrat. (logistic regression useful here).
+
+\eitem
+
+\newpage
+
+\noindent {\bf Problem 5} \hfill (10 pts)
+\vspace{.25in}
+
+\noindent Suppose that large classes at a liberal arts college were divided into sections. The math class (M201) has 5 sections, the chemistry class (C105) has 8 sections, the physics class (P130) has 6 sections, and the history class (H202) has 4 sections. The likelihood of being enrolled in any section for a given class is random and uniformly distributed. Enrollment in a section is not controlled by the students. Selection of a particular class is controlled by the students unless indicated. Each section is referred to by a letter designation (e.g. 'A', 'B', 'C', etc.). 
+
+Suppose that Rick and Marty are friends who are enrolling for classes. For Questions a-c and g, it is OK to assume the enrollment of one student in a section will not affect the probability of the enrollment of another in the same section.
+
+\bitem
+\item[(a)] What is the probability of Rick and Marty both being enrolled in section A of M201?
+
+P(A) = P(Rick gets enrolled in section A of M201) = 1/5
+P(B) = P(Martin gets enrolled in section A of M201) = 1/5
+Therefore,
+P(Rick and Martin both get enrolled in section A of M201) = P(A)*P(B) = 1/25
+
+\item[(b)] What is the probability of Rick and Marty both being enrolled in section F of C105?
+
+P(A) = P(Rick gets enrolled in section F of C105) = 1/8
+P(B) = P(Martin gets enrolled in section F of C105) = 1/8
+P(Rick and Martin both get enrolled in section F of C105) = P(A)*P(B) = 1/64
+
+\item[(c)] What is the probability of Rick and Marty being concurrently enrolled in the same M201 and C105 sections?
+
+P(Rick getting enrolled in 1 section of M201) = 1/5
+P(Marty getting enrolled in the same section as that of Rick in C105) = 1/8
+
+But, Rick can get enrolled in any of the 5 sections of M201. Therefore P(Rick getting a section in M201) = 5*1/5 = 1
+P(Marty getting the same section as Rick) = 1/8
+
+Thus, P(Rick and Marty being concurrently enrolled in the same M201 and C105 sections) = 1/8
+
+\item[(d)] What is the probability of Rick being enrolled in section A or section D of M201?
+
+Rick has 2 possible sections to get enrolled in out of the 5 available.
+Therefore, P(Rick getting enrolled in section A or section D of M201) = 2/5
+
+\item[(e)] What is the probability of Marty being enrolled in section B, C, or D of C105?
+
+Marty has 3 available sections to get enrolled in out of the 8 available.
+Therefore, P(Marty getting enrolled in section B,C, or D of C105) = 3/8
+
+\item[(f)] Suppose that each section for every class only has one more seat remaining. Rick and Marty create a random class selector that randomly selects any class across \textit{all} the four classes listed above that have a seat remaining. The random class selector weighs each class based on the number of available sections. What is the probability that Rick uses this random selector first, gets assigned into a M201 section, and then Marty uses the selector and also gets assigned into a M201 section?
+
+P(Rick gets to use the random class selector first) = 1/2
+P(Rick gets assigned into a M201 class) = 1/4
+Thus, P(Rick uses the random selector first and gets assigned into a M201 section) = 1/2 * 1/4 = 1/8
+
+P(Marty gets assigned to M201 class) = 1/4
+P(Marty gets other sections except for the one occupied by Rick) = 4/5
+Therefore, P(Marty gets into a M201 section) = 1/4 * 4/5 = 1/5
+
+P(Rick and Marty get into a M201 section) = 1/8 * 1/5 = 1/40
+
+\item[(g)] Now suppose that each section for every class has multiple seats remaining. What is the probability of both Rick and Marty each using the random class selector once and being assigned to the same class, regardless of which class it is and which section they're in?
+
+P(Rick gets into any one of the class) = 4 * 1/4 
+P(Marty gets into the same class as Rick) = 1/4
+Therefore, P(Rick and Marty get assigned to the same class) = 1/4
+
+\eitem
+
+\noindent Bruce Wayne goes to his trusted mechanic with car issues. Upon inspecting the vehicle, the mechanic, Alfred, determines the issue is either with the transmission, with the spark plugs, or with both.  Alfred determines there is a probability of 0.8 that the issue is with the transmission and there is a probability of 0.3 that there is an issue with the spark plugs.  
+
+\bitem
+
+\item[(h)] What is the probability that there is an issue with both? Assume there is zero chance that the car has no issue; assume there is zero chance the car has any other issue. Show your work.
+
+P(issue with Transmission)=0.8
+P(No issue with Transmission)=1-0.8=0.2
+
+P(issue with plugs)=0.3
+P(No issue with plugs)=1-0.3=0.7
+
+P(issue with both)=1-(0.8x0.7)-(0.2x0.3)=0.38
+
+\eitem
+
+
+
+\newpage
+
+\noindent {\bf Problem 6 - Extra Credit} \hfill ($\leq$ 3 pts)
+\vspace{.25in}
+
+\noindent Apply boosting, bagging, and random forests to a dataset of your choice that we have used in class. Be sure to fit the models on a training set and evaluate their performance on a test set. 
+\
+Here, in-built Boston dataset has been used. This dataset has been split into training and testing dataset in the ratio 80:20.
+Hence, as we can see the Boston dataset has 506 observations and the training and testing dataset have 404 and 102 observations respetively. We calculate RMSE (root mean squared error) for each of these models and use it for comparison between the different models.
+
+```{r}
+
+#Using the Boston dataset
+
+boston <- Boston
+str(boston)
+summary(boston)
+#Splitting the state dataset into train and test in the ration 80/20
+set.seed(101)
+sample1 <- sample.int(n = nrow(boston), size = floor(.80*nrow(boston)))
+train_boston <- boston[sample1, ]
+test_boston <- boston[-sample1, ]
+nrow(boston)
+nrow(train_boston)
+nrow(test_boston)
+
+
+#Bagging - mtry is set to the number of predictor variables and hence randomForest is used as a case of bagging below
+
+bagging_boston = randomForest(medv ~ ., data = train_boston, mtry = 13, 
+                          importance = TRUE, ntrees = 500)
+bagging_boston
+
+
+#Predictions - Bagging
+boston_predict_bagging = predict(bagging_boston, newdata = test_boston)
+summary(boston_predict_bagging)
+boston_predict_bagging
+
+bagging_rmse <- sqrt(mean(test_boston$medv - boston_predict_bagging)^2)
+bagging_rmse
+
+forest_boston = randomForest(medv ~ ., data = train_boston, mtry = 4, 
+                             importance = TRUE, ntrees = 500)
+
+forest_boston
+
+#Predictions
+boston_predict_rf = predict(forest_boston, newdata = test_boston)
+
+#RMSE - RF
+rf_rmse <- sqrt(mean(test_boston$medv - boston_predict_rf)^2)
+rf_rmse
+
+#Boosting
+
+boost_boston = gbm(medv ~ ., data = train_boston, distribution = "gaussian", 
+                    n.trees = 5000, interaction.depth = 4, shrinkage = 0.01)
+boost_boston
+
+boston_predict_boost = predict(boost_boston, newdata = test_boston, n.trees = 5000)
+
+boost_rmse <- sqrt(mean(test_boston$medv - boston_predict_boost)^2)
+boost_rmse
+```
+\bitem
+\item[(a)] How are the results compared to simple methods like linear or logistic regression?
+
+Here RMSE values are considered as benchmarks to measure the performance of the respective regression models. The RMSE value of the linear regression model is approximately 0.52 which is higher than other methods.
+
+```{r}
+
+#Linear Model
+
+boston_lm <- lm(medv ~ ., data = train_boston)
+
+#Prediction using linear model
+
+boston_predict_lm <- predict(boston_lm, newdata = test_boston, type = 'response')
+
+head(boston_predict_lm)
+
+#Calculate RMSE
+lm_rmse <- sqrt(mean( test_boston$medv - boston_predict_lm)^2)
+lm_rmse
+
+```
+
+\item[(b)] Which of the approaches yields the best performance?
+
+Random Forest Model has the lowest RMSE value and hence can be considered to yield the best performance.
+```{r}
+
+(rmse = data.frame(
+  Model = c ("Linear Model", "Bagging",  "Random Forest",  "Boosting"),
+  rmse_values = c(lm_rmse, bagging_rmse, rf_rmse, boost_rmse)
+  )
+)
+rmse
+
+```
+\eitem
